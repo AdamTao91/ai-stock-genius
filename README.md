@@ -5,43 +5,40 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 [![Stars](https://img.shields.io/github/stars/AdamTao91/ai-stock-genius)]()
-
-## 🎯 一句话介绍
-
-**AI Stock Genius** - 让每个散户都拥有自己的AI投资顾问，只需输入股票代码，AI自动分析并给出买卖建议。
-
-## ✨ 核心功能
-
-| 功能 | 说明 |
-|------|------|
-| 📊 **一键诊断** | 输入股票代码，AI自动分析持仓 |
-| 🎯 **买卖建议** | 明确给出"买入/持有/卖出"建议 |
-| ⚠️ **风险预警** | 自动识别潜在风险 |
-| 📈 **趋势分析** | 技术面+基本面双维度分析 |
-| 💡 **操作建议** | 仓位管理、止盈止损指导 |
+[![Download](https://img.shields.io/pypi/dm/ai-stock-genius)]()
 
 ## 🚀 5秒快速开始
 
 ```python
 from stock_genius import Analyzer
 
-# 一步到位，AI自动分析
 analyzer = Analyzer()
-result = analyzer.analyze("588830")  # 入力股票代码
-
+result = analyzer.analyze("588830", position=200000, holding_months=4)
 print(result)
-# 输出：
-# 🧠 AI分析结果: 588830
-# 
-# 📈 趋势: 📉 下跌趋势，短期可能调整
-# 💰 估值: ⚠️ 偏高，当前PE为42.3
-# 
-# 🎯 建议: ⛔ 建议减仓30%
-# 💵 目标价: 2.85元
-# 🛡️ 止损: 2.15元
-# 
-# 💡 点评: 前期涨幅过大，建议落袋为安
 ```
+
+**输出示例:**
+```
+🧠 AI分析结果: 588830
+
+📈 趋势: 📉 下跌趋势，短期可能调整
+💰 估值: ⚠️ 偏高，当前PE为42.3
+
+🎯 建议: ⛽ 建议减仓30%
+💵 目标价: 2.85元
+🛡️ 止损: 2.15元
+
+💡 点评: 前期涨幅过大，建议落袋为安
+```
+
+## ✨ 为什么选择 AI Stock Genius?
+
+| 特性 | 说明 |
+|------|------|
+| ⚡ **快** | 5秒出结果，无需等待 |
+| 🧠 **智能** | 基于AI分析，非简单指标 |
+| 📊 **全面** | 技术面+基本面+风险面 |
+| 💰 **免费** | 完全开源免费 |
 
 ## 📦 安装
 
@@ -64,73 +61,41 @@ python demo.py
 # 分析单只股票
 python -m stock_genius 588830
 
-# 分析并生成报告
-python -m stock_genius 588830 --report
+# 带持仓分析
+python -m stock_genius 588830 200000 4
 
 # 批量分析
 python -m stock_genius --batch 588830 600519 000858
 ```
 
-## 📖 使用示例
+## 📖 功能列表
 
-### 示例1: 诊断持仓
+### 1. 单股诊断
 ```python
 from stock_genius import Analyzer
 
 analyzer = Analyzer()
 report = analyzer.analyze("588830", position=200000, holding_months=4)
-print(report)
 ```
 
-### 示例2: 组合诊断
+### 2. 组合管理
 ```python
 from stock_genius import Portfolio
 
 portfolio = Portfolio()
-portfolio.add("588830", 100000)
-portfolio.add("600519", 50000)
-
-report = portfolio.diagnose()
-print(report)  # 输出综合诊断报告
+portfolio.add("588830", 100000, 4)
+portfolio.add("600519", 50000, 6)
+print(portfolio.diagnose())
 ```
 
-### 示例3: 风险扫描
+### 3. 风险扫描
 ```python
 from stock_genius import RiskScanner
 
 scanner = RiskScanner()
-alerts = scanner.scan(["588830", "600519", "000858"])
+alerts = scanner.scan(["588830", "600519"])
 for alert in alerts:
-    print(f"⚠️ {alert}")
-```
-
-## 🏗️ 架构
-
-```
-ai-stock-genius/
-├── stock_genius/          # 核心分析模块
-│   ├── __init__.py
-│   ├── analyzer.py        # 股票分析器
-│   ├── portfolio.py       # 组合管理
-│   ├── risk_scanner.py   # 风险扫描
-│   ├── data.py           # 数据获取
-│   └── ai.py             # AI分析引擎
-├── demo.py               # 演示脚本
-├── requirements.txt     # 依赖
-└── README.md
-```
-
-## 🔧 配置
-
-创建 `config.json`:
-
-```json
-{
-  "api_key": "your-minimax-api-key",
-  "default_position": 100000,
-  "risk_level": "moderate",
-  "notify_enabled": false
-}
+    print(alert)
 ```
 
 ## 📊 支持的市场
@@ -140,22 +105,30 @@ ai-stock-genius/
 - ✅ ETF
 - ✅ 基金
 
-## ⚠️ 免责声明
+## 🏗️ 架构
 
-- 本工具仅供投资参考，不构成投资建议
-- 投资有风险，入市需谨慎
-- AI分析仅供参考，决策需自负
+```
+ai-stock-genius/
+├── stock_genius/
+│   ├── analyzer.py        # 股票分析器
+│   ├── portfolio.py       # 组合管理
+│   └── risk_scanner.py   # 风险扫描
+├── demo.py
+├── requirements.txt
+└── README.md
+```
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📄 License
+## ⚠️ 免责声明
 
-MIT License
+- 本工具仅供投资参考，不构成投资建议
+- 投资有风险，入市需谨慎
 
 ---
 
 **让每个散户都拥有AI投资顾问** 🧠💰
 
-⭐ 如果对你有帮助，请给我们一个 Star！
+⭐ Star us: https://github.com/AdamTao91/ai-stock-genius
