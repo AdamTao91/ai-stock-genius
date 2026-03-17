@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
 """
-AI Stock Genius - 股票分析器核心模块
+AI Stock Genius - 股票分析器核心模块 v1.1
+增强版：加入更多分析维度
 """
 
 import json
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 try:
     import akshare as ak
 except ImportError:
     ak = None
-
-try:
-    import yfinance as yf
-except ImportError:
-    yf = None
 
 
 class StockData:
@@ -60,6 +56,15 @@ class StockData:
             return StockData._mock_data(code)
     
     @staticmethod
+    def get_realtime_quotes(codes: List[str]) -> List[Dict]:
+        """批量获取实时行情"""
+        results = []
+        for code in codes:
+            data = StockData.get_a_stock(code)
+            results.append(data)
+        return results
+    
+    @staticmethod
     def _mock_data(code: str) -> Dict[str, Any]:
         """模拟数据（用于测试）"""
         return {
@@ -78,7 +83,7 @@ class StockData:
 
 
 class AIAnalyzer:
-    """AI分析引擎"""
+    """AI分析引擎 v1.1"""
     
     def __init__(self, model: str = "minimax"):
         self.model = model
@@ -90,60 +95,84 @@ class AIAnalyzer:
         price = data.get("price", 0)
         change = data.get("change", 0)
         
-        # 基础分析
-        trend = "📈 上涨趋势" if change > 0 else "📉 下跌趋势"
-        if abs(change) < 1:
-            trend = "➡️ 横盘震荡"
+        # 趋势分析
+        trend = self._analyze_trend(change)
         
-        # 仓位建议
-        if position > 0 and holding_months > 0:
-            # 简单估算收益
-            estimated_return = change * holding_months * 0.5
-            
-            if estimated_return > 30:
-                action = "⛽ 建议减仓落袋"
-                action_detail = "已获得可观收益，建议卖出部分"
-            elif estimated_return > 10:
-                action = "💼 继续持有"
-                action_detail = "处于盈利状态，可继续持有"
-            elif estimated_return < -10:
-                action = "🛡️ 建议观望"
-                action_detail = "浮亏较大，耐心等待反弹"
-            else:
-                action = "➡️ 继续持有"
-                action_detail = "保持当前仓位"
-        else:
-            # 无持仓情况
-            if change > 5:
-                action = "⚠️ 谨慎追高"
-                action_detail = "涨幅较大，建议等待回调"
-            elif change < -5:
-                action = "🔍 关注机会"
-                action_detail = "跌幅较大，可考虑轻仓关注"
-            else:
-                action = "➡️ 建议观察"
-                action_detail = "走势平稳，可进一步分析"
+        # 操作建议
+        action, action_detail = self._get_action(change, position, holding_months)
+        
+        # 风险评估
+        risk_level = self._assess_risk(change, price)
         
         # 生成报告
         report = f"""
-🧠 AI分析结果: {code} {name}
+🧠 AI分析: {code} {name}
+{'='*40}
 
-📊 当前行情:
+📊 行情:
 • 价格: {price:.2f} 元
 • 涨跌幅: {change:+.2f}%
 
-📈 趋势判断: {trend}
+📈 趋势: {trend}
+🎯 建议: {action}
+🛡️ 风险: {risk_level}
 
-🎯 操作建议: {action}
-💡 点评: {action_detail}
+💡 {action_detail}
 
----
-💰 持仓诊断 (本金: {position/10000:.1f}万, 持有: {holding_months}个月)
-⏰ 分析时间: {data.get('timestamp', '')[:19]}
-
-⚠️ 免责声明: 本分析仅供参考，不构成投资建议
+{'='*40}
+⏰ {data.get('timestamp', '')[:19]}
+⚠️ 仅供参考，不构成投资建议
 """
         return report.strip()
+    
+    def _analyze_trend(self, change: float) -> str:
+        """分析趋势"""
+        if change > 3:
+            return "📈 强势上涨，可能继续冲高"
+        elif change > 0:
+            return "➡️ 小幅上涨，震荡整理"
+        elif change > -3:
+            return "➡️ 小幅下跌，观望为主"
+        else:
+            return "📉 明显下跌，谨防回调"
+    
+    def _get_action(self, change: float, position: float, holding_months: int) -> tuple:
+        """获取操作建议"""
+        if position == 0:
+            # 未持仓
+            if change > 7:
+                return "⚠️ 建议观望", "涨幅过大，追高风险高"
+            elif change > 3:
+                return "🔍 轻仓关注", "可小资金试仓"
+            elif change < -7:
+                return "📈 关注机会", "超跌可能反弹"
+            elif change < -3:
+                return "🔍 关注支撑", "等待企稳信号"
+            else:
+                return "➡️ 建议观察", "走势平稳"
+        else:
+            # 有持仓
+            if change > 20:
+                return "⛽ 建议减仓", "收益可观，落袋为安"
+            elif change > 10:
+                return "💼 继续持有", "处于上升趋势"
+            elif change > 0:
+                return "➡️ 持有观望", "保持当前仓位"
+            elif change > -10:
+                return "🛡️ 持有等待", "耐心等待反弹"
+            else:
+                return "⚠️ 考虑止损", "亏损较大，需谨慎"
+    
+    def _assess_risk(self, change: float, price: float) -> str:
+        """风险评估"""
+        if change > 9:
+            return "🔴 高风险"
+        elif change > 5:
+            return "🟡 中风险"
+        elif change > -5:
+            return "🟢 低风险"
+        else:
+            return "🟠 中风险"
 
 
 class Analyzer:
@@ -156,22 +185,17 @@ class Analyzer:
     def analyze(self, code: str, position: float = 0, holding_months: int = 0) -> str:
         """
         分析股票并给出建议
-        
-        Args:
-            code: 股票代码 (如: 588830, 600519)
-            position: 持仓金额 (元)
-            holding_months: 持有月数
-            
-        Returns:
-            str: 分析报告
         """
-        # 获取数据
         data = self.data.get_a_stock(code)
-        
-        # AI分析
         report = self.ai.analyze(data, position, holding_months)
-        
         return report
+    
+    def batch_analyze(self, codes: List[str]) -> Dict[str, str]:
+        """批量分析"""
+        results = {}
+        for code in codes:
+            results[code] = self.analyze(code)
+        return results
 
 
 def main():
